@@ -1,0 +1,81 @@
+<!DOCTYPE html><html><head>
+<meta charset='UTF-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'>
+<title>Budget Traveller</title>
+<style>
+body{font-family:Arial;margin:20px;background:#f1f5f9;color:#172033}
+svg{width:100%;max-width:850px;background:white;border:1px solid #ddd;border-radius:12px}
+.panel{background:white;padding:14px;border-radius:10px;margin:12px 0;max-width:820px}
+button{padding:10px 18px;margin:5px;border:0;border-radius:7px;background:#2563eb;color:white;cursor:pointer}
+button:disabled{background:#94a3b8;cursor:default}
+.flight{transition:stroke .3s,stroke-width .3s}
+</style></head><body>
+<h2>Budget Traveller - Flight Network</h2>
+<p>🟢 Start &nbsp; 🔴 Destination &nbsp; 🟠 Intermediate city</p>
+<p>🔵 Other flight &nbsp; 🔴 Selected route &nbsp; 🟡 Coupon flight</p>
+<div class='panel'>
+<button id='play' onclick='play()'>▶️ Play Animation</button>
+<button onclick='resetJourney()'>↺ Reset</button>
+<h3 id='status'>Ready to start the journey</h3>
+<p id='step'>Flights completed: 0 / 1</p>
+<p id='cost'>Running cost: ₹0</p>
+<p id='stops'>Intermediate stops used: 0</p>
+<p id='coupon'>Coupon details: None yet</p>
+</div>
+<svg viewBox='0 0 850 650' xmlns='http://www.w3.org/2000/svg'>
+<defs><marker id='arrow' markerWidth='8' markerHeight='8' refX='7' refY='3' orient='auto'><path d='M0,0 L0,6 L8,3 Z' fill='context-stroke'/></marker></defs>
+<line id='edge0' class='flight' x1='436.50' y1='110.92' x2='613.65' y2='417.75' stroke='#64748b' stroke-width='2' marker-end='url(#arrow)'/>
+<text x='525.07' y='259.33' font-size='12' fill='#64748b'>200</text>
+<line id='edge1' class='flight' x1='604.65' y1='442.00' x2='250.35' y2='442.00' stroke='#64748b' stroke-width='2' marker-end='url(#arrow)'/>
+<text x='427.50' y='437.00' font-size='12' fill='#64748b'>300</text>
+<line id='edge2' class='flight' x1='413.50' y1='110.92' x2='236.35' y2='417.75' stroke='#d4a000' stroke-width='4' marker-end='url(#arrow)'/>
+<text x='324.93' y='259.33' font-size='12' fill='#d4a000'>600 -> 300 (coupon)</text>
+<circle id='city1' cx='425.00' cy='91.00' r='22' fill='#16a34a'/>
+<text x='425.00' y='91.00' fill='white' font-size='13' text-anchor='middle' dominant-baseline='middle'>1</text>
+<circle id='city2' cx='627.65' cy='442.00' r='22' fill='#f59e0b'/>
+<text x='627.65' y='442.00' fill='white' font-size='13' text-anchor='middle' dominant-baseline='middle'>2</text>
+<circle id='city3' cx='222.35' cy='442.00' r='22' fill='#dc2626'/>
+<text x='222.35' y='442.00' fill='white' font-size='13' text-anchor='middle' dominant-baseline='middle'>3</text>
+</svg>
+<script>
+const route = [
+{id:2,from:1,to:3,price:600,finalPrice:300,coupon:true},
+];
+let stepIndex=0, runningCost=0, timer=null;
+function update(){
+document.getElementById('step').textContent='Flights completed: '+stepIndex+' / '+route.length;
+document.getElementById('cost').textContent='Running cost: ₹'+runningCost;
+document.getElementById('stops').textContent='Intermediate stops used: '+Math.max(0,stepIndex-1);
+}
+function resetJourney(){
+if(timer){clearInterval(timer);timer=null;}
+stepIndex=0;runningCost=0;
+document.getElementById('status').textContent='Ready to start the journey';
+document.getElementById('coupon').textContent='Coupon details: None yet';
+document.getElementById('play').disabled=false;
+route.forEach(f=>{let e=document.getElementById('edge'+f.id);e.setAttribute('stroke',f.coupon?'#d4a000':'#dc2626');e.setAttribute('stroke-width',4);});
+update();
+}
+function play(){
+if(timer)return;
+if(stepIndex>=route.length)resetJourney();
+document.getElementById('play').disabled=true;
+document.getElementById('status').textContent='Journey in progress...';
+timer=setInterval(()=>{
+if(stepIndex>=route.length){
+clearInterval(timer);timer=null;
+document.getElementById('status').textContent='Destination reached!';
+document.getElementById('play').disabled=false;return;}
+const f=route[stepIndex];
+const e=document.getElementById('edge'+f.id);
+e.setAttribute('stroke',f.coupon?'#d4a000':'#2563eb');
+e.setAttribute('stroke-width',7);
+runningCost+=f.finalPrice;stepIndex++;
+document.getElementById('status').textContent='Flying from city '+f.from+' to city '+f.to;
+document.getElementById('coupon').textContent=f.coupon?'Coupon used: ₹'+f.price+' → ₹'+f.finalPrice:'Coupon details: No coupon on this flight';
+update();
+},1200);
+}
+update();
+</script>
+</body></html>

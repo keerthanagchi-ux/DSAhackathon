@@ -1,0 +1,4 @@
+From,To,OriginalPrice,Selected,CouponUsed,FinalPrice
+1,2,200,,No,
+2,3,300,,No,
+1,3,600,x,Yes,300
